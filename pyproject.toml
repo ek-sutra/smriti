@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-smriti"
+version = "0.1.0"
+description = "Plain-text memory for AI agents — small, filtered, compressed, self-pruning. No database, no embeddings, no dependencies."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Gurprit Singh" }]
+keywords = ["ai", "agents", "memory", "llm", "markdown", "rag", "context", "agent-memory"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/ek-sutra/smriti"
+Repository = "https://github.com/ek-sutra/smriti"
+Issues = "https://github.com/ek-sutra/smriti/issues"
+
+[project.scripts]
+smriti = "smriti:cli"
+
+[tool.setuptools]
+py-modules = ["smriti"]

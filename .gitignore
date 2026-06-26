@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+demo-memory/
+.DS_Store
+dist/
+build/
+*.egg-info/

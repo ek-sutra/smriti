@@ -1,0 +1,26 @@
+name: publish
+
+# Publishes to PyPI on a version tag, using PyPI Trusted Publishing (OIDC) —
+# no API token or secret to store. One-time setup on PyPI:
+#   PyPI → your project/account → Publishing → add a trusted publisher:
+#     owner: ek-sutra · repository: smriti · workflow: publish.yml · environment: pypi
+# Then:  git tag v0.1.0 && git push --tags
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # required for trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install build
+      - run: python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1
