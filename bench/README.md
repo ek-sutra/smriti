@@ -48,12 +48,18 @@ The default `echo` model is a zero-token stand-in that proves the wiring (arms
 differ, scoring works) without an API key. It already shows the shape:
 `none` 0% · `dump` 100% · `smriti` 100% at ~16% of `dump`'s context size.
 
-For a real-model result:
+For a real-model result, pick a backend — both are stdlib-only on the harness side:
 
 ```bash
+# Local model via Ollama (no API key, runs on your hardware)
+export SMRITI_BENCH_BACKEND=ollama
+export SMRITI_BENCH_MODEL=mistral:latest   # any installed model
+python bench/agent_ab.py
+
+# Or the Anthropic API
 pip install anthropic
 export SMRITI_BENCH_BACKEND=anthropic
-export SMRITI_BENCH_MODEL=claude-haiku-4-5   # the agent under test; override freely
+export SMRITI_BENCH_MODEL=claude-haiku-4-5
 export ANTHROPIC_API_KEY=...
 python bench/agent_ab.py
 ```
@@ -61,6 +67,20 @@ python bench/agent_ab.py
 The bar: **smriti ≈ `dump` on success, ≈ `none` on cost, flat where `dump`
 explodes.** The `update / contradiction` scenario is the sharp one — `dump` holds
 both the old and new value and must infer the latest, while smriti overwrote it.
+
+### Result (mistral:latest, local via Ollama)
+
+| arm | success | context chars |
+|---|---|---|
+| `none` | 25% (1/4) | 4,899 |
+| `dump` | 100% (4/4) | 22,963 |
+| `smriti` | 100% (4/4) | 8,646 |
+
+smriti matched the full-transcript hoard on success at ~38% of its context, and
+beat no-memory 4×. Honest caveat: `none`'s one pass was the preference probe
+(the model defaults to Postgres anyway — its prior, not memory). On the three
+un-guessable facts (name, Cedar, gRPC) `none` scored 0/3 and `smriti` 3/3 —
+memory doing real work. Run on a 7B local model, no vendor.
 
 ### Not yet covered (v2)
 

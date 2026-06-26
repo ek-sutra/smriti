@@ -86,6 +86,30 @@ def anthropic_model(model_id: str) -> Model:
     return call
 
 
+def ollama_model(model_id: str, host: str) -> Model:
+    """Local models via Ollama's /api/chat — stdlib only, no API key. Proves the
+    seam is model-agnostic and that even small local models gain from memory."""
+    import json
+    import urllib.request
+
+    url = host.rstrip("/") + "/api/chat"
+
+    def call(system: str, messages: list[dict]) -> str:
+        body = json.dumps(
+            {
+                "model": model_id,
+                "messages": [{"role": "system", "content": system}, *messages],
+                "stream": False,
+                "options": {"temperature": 0, "num_predict": 256},
+            }
+        ).encode()
+        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=300) as r:
+            return json.loads(r.read()).get("message", {}).get("content", "")
+
+    return call
+
+
 # ── one arm over one scenario ─────────────────────────────────────────────────
 def run_arm(scenario: Scenario, arm: str, model: Model) -> tuple[int, int, int]:
     """Return (probes_passed, probes_total, context_chars_total)."""
@@ -185,6 +209,13 @@ def main() -> int:
         model_id = os.environ.get("SMRITI_BENCH_MODEL", "claude-haiku-4-5")
         model = anthropic_model(model_id)
         label = f"anthropic:{model_id}"
+    elif backend == "ollama":
+        model_id = os.environ.get("SMRITI_BENCH_MODEL", "mistral:latest")
+        host = os.environ.get("OLLAMA_HOST") or "http://localhost:11434"
+        if not host.startswith("http"):
+            host = "http://" + host
+        model = ollama_model(model_id, host)
+        label = f"ollama:{model_id}"
     else:
         model = echo_model
         label = "echo (harness self-test — zero tokens, not a real-model result)"
