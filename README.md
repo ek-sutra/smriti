@@ -1,84 +1,34 @@
-# smriti
+<p align="center">
+  <img src="assets/smriti.svg" alt="smriti — plain-text memory for AI agents: write through a filter, compress to a hook, inject the index, recall by hook, prune the rest" width="860">
+</p>
 
-Memory for AI agents, stored as markdown files. No database, no embeddings, no
-dependencies — Python standard library only.
+<h1 align="center">smriti</h1>
 
-## A memory on disk
+<p align="center">
+  Plain-text memory for AI agents.<br>
+  Markdown files — <b>no database, no embeddings, no dependencies.</b>
+</p>
 
-```
-$ cat memory/use-postgres-for-the-ledger.md
 ---
-id: use-postgres-for-the-ledger
-hook: Use Postgres, not Mongo, for the ledger
-type: decision
-created: 2026-06-18
-updated: 2026-06-18
----
-
-**Why:** the ledger needs ACID transactions.
-**How to apply:** new services default to Postgres.
-```
-
-That file is the whole thing. `git` versions it, a person reads it, any program
-parses it in about twenty lines.
-
-## Use
 
 ```python
 from smriti import Memory
 mem = Memory("./memory")
 
-mem.write(
-    "Use Postgres, not Mongo, for the ledger",
-    body="**Why:** the ledger needs ACID transactions.",
-    type="decision",
-)
+mem.write("Use Postgres, not Mongo, for the ledger", type="decision")
 
-mem.context()                  # the index, one line per memory — inject into your prompt
+mem.context()                  # the index — inject into your prompt every turn
 mem.recall("postgres ledger")  # ranked matches, plus what they link to (one hop)
-mem.related("use-postgres-for-the-ledger")  # memories linked to/from this one
 mem.get("use-postgres-for-the-ledger").body
 mem.prune()                    # stale / duplicate / broken-link memories
 ```
 
-## How it works
+**Install** &nbsp;·&nbsp; `pip install agent-smriti` &nbsp;·&nbsp; or copy `smriti.py` (stdlib, Python 3.10+)
 
-- **write** stores a memory if it has a one-line hook, a known type
-  (`fact` · `preference` · `decision` · `pattern` · `reference`), and a body
-  that fits. Same hook updates in place.
-- **context** returns the index — one line per memory — small enough to put in
-  the prompt every turn.
-- **recall** matches words in hooks and bodies, then pulls in the memories the
-  top hits link to (one hop) — a decision brings the pattern it rests on.
-  Lexical and deterministic; no embeddings — the model does the semantics over
-  `context()`. `related(id)` returns a memory's forward- and back-links.
-- **prune** reports memories that have gone stale, duplicate, or point at a
-  missing link.
+**The four rules** &nbsp;·&nbsp; write what's durable &nbsp;·&nbsp; compress to a hook + seed &nbsp;·&nbsp; recall by hook &nbsp;·&nbsp; prune the rest
 
-The store is a directory of `<id>.md` files plus an `INDEX.md`. The format is
-the whole specification: [SPEC.md](SPEC.md).
+**Limits** &nbsp;·&nbsp; recall is lexical (the model does the semantics over `context()`) &nbsp;·&nbsp; the filter checks shape, not worth &nbsp;·&nbsp; built for agent scale
 
-## Limits
+---
 
-- Recall is lexical: "database" will not find "Postgres".
-- The write filter checks shape, not worth — deciding what deserves remembering
-  is yours.
-- Sized for hundreds to a few thousand memories, not millions of rows.
-
-## Install
-
-```bash
-pip install agent-smriti        # import smriti
-```
-
-Or copy `smriti.py` into your project — Python 3.10+, standard library only.
-
-## CLI
-
-```bash
-python smriti.py ./memory context           # print the index
-python smriti.py ./memory recall postgres   # search
-python smriti.py ./memory prune             # health report
-```
-
-MIT licensed. See [SPEC.md](SPEC.md) for the format.
+[**The format**](SPEC.md) is the whole spec &nbsp;·&nbsp; [**Benchmarks**](bench/) — local-model A/B: smriti **100%** vs no-memory **25%** at ~⅓ the context &nbsp;·&nbsp; MIT
