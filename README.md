@@ -35,7 +35,8 @@ mem.write(
 )
 
 mem.context()                  # the index, one line per memory — inject into your prompt
-mem.recall("postgres ledger")  # ranked matches
+mem.recall("postgres ledger")  # ranked matches, plus what they link to (one hop)
+mem.related("use-postgres-for-the-ledger")  # memories linked to/from this one
 mem.get("use-postgres-for-the-ledger").body
 mem.prune()                    # stale / duplicate / broken-link memories
 ```
@@ -47,8 +48,10 @@ mem.prune()                    # stale / duplicate / broken-link memories
   that fits. Same hook updates in place.
 - **context** returns the index — one line per memory — small enough to put in
   the prompt every turn.
-- **recall** matches words in hooks and bodies. Lexical and deterministic; no
-  embeddings — the model does the semantics over `context()`.
+- **recall** matches words in hooks and bodies, then pulls in the memories the
+  top hits link to (one hop) — a decision brings the pattern it rests on.
+  Lexical and deterministic; no embeddings — the model does the semantics over
+  `context()`. `related(id)` returns a memory's forward- and back-links.
 - **prune** reports memories that have gone stale, duplicate, or point at a
   missing link.
 

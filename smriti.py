@@ -205,15 +205,24 @@ class Memory:
         return False
 
     # -- recall (rule 3: by hook, ranked, no embeddings) -----------------------
-    def recall(self, query: str, k: int = 5, with_body: bool = False) -> list[Memo]:
+    @staticmethod
+    def _strip(m: Memo) -> Memo:
+        return Memo(m.id, m.hook, m.type, "", m.created, m.updated, m.links)
+
+    def recall(
+        self, query: str, k: int = 5, with_body: bool = False, follow_links: bool = True
+    ) -> list[Memo]:
         """Return the memories most relevant to `query`, ranked. Matches on the
         hook (weighted), type, and body — plain token overlap, deterministic,
-        dependency-free. Bodies are omitted unless `with_body=True`."""
+        dependency-free. When `follow_links` is set, the top hits also pull in
+        the memories they link to (one hop): a decision brings the pattern it
+        rests on. Bodies are omitted unless `with_body=True`."""
         q = _tokens(query)
         if not q:
             return []
+        memos = self.all()
         scored = []
-        for m in self.all():
+        for m in memos:
             score = (
                 3 * len(q & _tokens(m.hook))
                 + 2 * len(q & _tokens(m.type))
@@ -222,10 +231,29 @@ class Memory:
             if score:
                 scored.append((score, m))
         scored.sort(key=lambda s: s[0], reverse=True)
-        out = [m for _, m in scored[:k]]
-        if not with_body:
-            out = [Memo(m.id, m.hook, m.type, "", m.created, m.updated, m.links) for m in out]
-        return out
+        hits = [m for _, m in scored[:k]]
+
+        if follow_links:  # walk the links already written into the files (one hop)
+            by_id = {m.id: m for m in memos}
+            seen = {m.id for m in hits}
+            for m in list(hits):
+                for lid in m.links:
+                    if lid not in seen and lid in by_id:
+                        hits.append(by_id[lid])
+                        seen.add(lid)
+
+        return hits if with_body else [self._strip(m) for m in hits]
+
+    def related(self, id: str, with_body: bool = False) -> list[Memo]:
+        """Memories one hop from `id` — both the ones it links to (forward) and
+        the ones that link to it (back). The graph the `links` field describes."""
+        memos = self.all()
+        here = next((m for m in memos if m.id == id), None)
+        if here is None:
+            return []
+        want = (set(here.links) | {m.id for m in memos if id in m.links}) - {id}
+        out = [m for m in memos if m.id in want]
+        return out if with_body else [self._strip(m) for m in out]
 
     def context(self) -> str:
         """The whole index as text — cheap to inject into a system prompt every

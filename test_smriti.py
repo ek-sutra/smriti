@@ -49,6 +49,32 @@ def test_update_preserves_created():
     assert a.id == b.id and b.body == "v2" and b.created == a.created
 
 
+def test_recall_follows_links():
+    # A query that matches only the decision should still pull in the pattern
+    # it links to, via one hop.
+    mem = _mem()
+    mem.write("Exponential backoff with jitter", type="pattern")
+    mem.write(
+        "Use the retry helper everywhere",
+        type="decision",
+        links=["exponential-backoff-with-jitter"],
+    )
+    ids = [m.id for m in mem.recall("retry helper")]
+    assert "use-the-retry-helper-everywhere" in ids  # matched
+    assert "exponential-backoff-with-jitter" in ids  # pulled in via link
+
+    no_links = [m.id for m in mem.recall("retry helper", follow_links=False)]
+    assert "exponential-backoff-with-jitter" not in no_links
+
+
+def test_related_forward_and_back():
+    mem = _mem()
+    mem.write("A pattern", type="pattern")
+    mem.write("A decision", type="decision", links=["a-pattern"])
+    assert "a-decision" in [m.id for m in mem.related("a-pattern")]  # backlink
+    assert "a-pattern" in [m.id for m in mem.related("a-decision")]  # forward link
+
+
 def test_prune_finds_broken_links():
     mem = _mem()
     mem.write("Has a dangling link", type="fact", links=["nope"])
