@@ -50,6 +50,11 @@ Then tune; don't control.
   newest), and only when asked — archiving each removal to `.forgotten/log.md`
   (what + why), so forgetting is transparent and recoverable, never silent.
   Speaks the format, stands alone, stdlib only. (`test_forgetting.py`.)
+- **`reinforce.py`** — the counterpart to forgetting. When a memory is *used*
+  (recalled and acted on), refresh its `updated` stamp. Decay then measures
+  time-since-last-*used*, not time-since-written — so use keeps a memory alive
+  and disuse lets it fade. The spacing effect, in plain text. Rewrites only the
+  `updated:` line; stands alone. (`test_temporal.py`.)
 
 ## A pruned piece — and why that's the loop working
 
@@ -77,10 +82,22 @@ here's the principle why* is a real turn of the loop.
 
 ## Where the loop is now
 
-Two organs proposed, one kept: **forgetting** stands; **triage** was pruned. The
-sharpened model: trivia is removed by **decay over time**, not gated at the door.
-The open question forgetting's design implies — does decay actually sweep the
-bench's trivia if we let time pass? — is a *temporal* test (age the store, re-run
-`prune`), and it's where the loop points next.
+The temporal test was run, and it corrected the model. The claim "trivia is swept
+by decay" turned out **half true**: decay alone is *indiscriminate* — it forgets a
+true-but-unused fact ("production region is eu-west-1") exactly as fast as a
+trivium ("new office chairs"), because decay measures staleness, not worth. The
+missing half — **reinforcement** — emerged from that failure and was built. With
+it, the pair is selective: *use keeps alive, disuse fades.*
 
-> Sow small rules; the whole raises itself. Pull the weed that won't take root.
+So the kept organs now form a **pair, the two halves of one metabolism:**
+`reinforce` (use → recency) and `forgetting` (disuse → decay → swept,
+transparently). Three pieces tried, two kept, one pruned — the discipline holds.
+
+Honest residual the test surfaced: a trivium the curator *mistypes* as a
+`decision` gets a long half-life and escapes decay. Decay can't fix a curator's
+type error — recorded, not hidden. And one integration question the pair now
+implies: *who calls `reinforce`?* The host, on the memories a turn actually used.
+That seam — wiring use to reinforcement — is where the loop points next.
+
+> Sow small rules; the whole raises itself. Pull the weed that won't take root;
+> water the one that does.
