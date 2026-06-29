@@ -97,9 +97,14 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    # `write` is run by the curator — surface its errors loudly (e.g. a hook over
+    # 120 chars). The automatic hooks (context/recall) must never break a session,
+    # so those — and only those — swallow everything and exit 0.
+    if (sys.argv[1:2] or ["context"])[0] == "write":
+        raise SystemExit(main(sys.argv))
     try:
         raise SystemExit(main(sys.argv))
     except SystemExit:
         raise
     except BaseException:
-        sys.exit(0)  # a memory helper must never break the session
+        sys.exit(0)
