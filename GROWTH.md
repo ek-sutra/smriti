@@ -51,16 +51,36 @@ Then tune; don't control.
   (what + why), so forgetting is transparent and recoverable, never silent.
   Speaks the format, stands alone, stdlib only. (`test_forgetting.py`.)
 
+## A pruned piece — and why that's the loop working
+
+**Organ #2, `triage`, was built and pruned.** The hypothesis: a cheap lexical
+advisor at write time could skip transient, unspecific trivia ("we got new
+chairs") and cut the measured hoarding. We built it, tested it on the bench, and
+the result was honest and clear:
+
+- It skipped **nothing** (`triaged_out = 0`). The hoarding didn't move.
+- *Why:* the curator (even a 7B model) had already (a) declined the worst on its
+  own ("Nice weather today" → remembered nothing) and (b) **laundered** the rest
+  into respectable facts — "we got new chairs" → `[fact] "New office chairs"`,
+  typed and shaped exactly like a real fact.
+- The principle underneath: **worth is semantic, not lexical.** "Wifi password
+  changed" and "Database schema changed" are the same shape — one is noise, one
+  is critical. Any regex that drops the first wrongly silences the second.
+
+So write-time worth is the **curator's** job (it already does most of it), and
+the *leftover* trivia is **time's** job: "new chairs" is a fact that fades and
+gets swept by `forgetting`'s decay — transparently. The system already had the
+right instrument. Rule 4 (subtract): triage didn't earn its place, so it's gone.
+
+The lesson is the artifact. A negative result that says *don't build this, and
+here's the principle why* is a real turn of the loop.
+
 ## Where the loop is now
 
-Organ #1 came from a test: the Stage-1 bench measured **curation hoards** (a
-model kept 5 of 5 distractors), so honest forgetting was built. But weighing it
-honestly: forgetting clears rot and duplicates — it does **not** remove
-still-fresh, unique noise. The bench's distractors were recent and distinct, so
-`forgetting` wouldn't drop them. That is a *different* friction — **write-time
-curation quality** — and it just named the next candidate piece: a value/relevance
-signal at write or recall (or the honest conclusion that it's the host model's
-job). The loop turns: a test named organ #1; organ #1's honest limit named the
-next question.
+Two organs proposed, one kept: **forgetting** stands; **triage** was pruned. The
+sharpened model: trivia is removed by **decay over time**, not gated at the door.
+The open question forgetting's design implies — does decay actually sweep the
+bench's trivia if we let time pass? — is a *temporal* test (age the store, re-run
+`prune`), and it's where the loop points next.
 
-> Sow small rules; the whole raises itself.
+> Sow small rules; the whole raises itself. Pull the weed that won't take root.
