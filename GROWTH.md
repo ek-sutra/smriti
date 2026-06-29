@@ -80,24 +80,41 @@ right instrument. Rule 4 (subtract): triage didn't earn its place, so it's gone.
 The lesson is the artifact. A negative result that says *don't build this, and
 here's the principle why* is a real turn of the loop.
 
+## The whole begins to compose
+
+`examples/brain.py` is the first **real application** built on the kit — a daily
+companion with a long memory — and it uses all three organs in one loop without
+being assembled by hand:
+
+- **recall** the index every turn (rule 3), descend to bodies on a match;
+- **reinforce** whatever was recalled (this answers the open seam — *the host
+  reinforces what a turn used*);
+- **write** only what's new and durable;
+- **forget** on demand.
+
+That is the phase transition GROWTH watches for: the pieces composing into
+something *used*, not assembled. Now we tune through real use.
+
 ## Where the loop is now
 
-The temporal test was run, and it corrected the model. The claim "trivia is swept
-by decay" turned out **half true**: decay alone is *indiscriminate* — it forgets a
-true-but-unused fact ("production region is eu-west-1") exactly as fast as a
-trivium ("new office chairs"), because decay measures staleness, not worth. The
-missing half — **reinforcement** — emerged from that failure and was built. With
-it, the pair is selective: *use keeps alive, disuse fades.*
+Real use named friction on the first session — which is the point:
 
-So the kept organs now form a **pair, the two halves of one metabolism:**
-`reinforce` (use → recency) and `forgetting` (disuse → decay → swept,
-transparently). Three pieces tried, two kept, one pruned — the discipline holds.
-
-Honest residual the test surfaced: a trivium the curator *mistypes* as a
-`decision` gets a long half-life and escapes decay. Decay can't fix a curator's
-type error — recorded, not hidden. And one integration question the pair now
-implies: *who calls `reinforce`?* The host, on the memories a turn actually used.
-That seam — wiring use to reinforcement — is where the loop points next.
+1. **Meta-queries didn't recall.** "What do you know about me?" shares no tokens
+   with "User prefers metric units," so lexical recall returned nothing. *Fixed* —
+   `brain` now injects the index (rule 3) as ambient context, not just lexical
+   hits. (The app had violated smriti's own rule.)
+2. **Restatement makes near-duplicates that slip the dedup threshold.** A weak
+   curator re-stores a known fact slightly reworded — "Prefers metric units" vs
+   "Gurprit prefers metric units" — which scores 0.75 on `forgetting`'s 0.8
+   overlap test, *below* the line, so it survives as a dupe. A prompt told the
+   model not to; it did anyway (the triage lesson: novelty is the curator's job
+   and a small model is weak at it — so the fix must be structural, not a prompt).
+   Lowering the global threshold would wrongly merge real distinctions ("postgres
+   for ledger" vs "postgres for billing"). The precise fix this names:
+   **containment-aware dedup** — also flag when one hook's tokens are a *subset*
+   of another's (restatement-with-extra-words), which catches this case without
+   the false-merge risk. That's the next piece — to be built when sustained use
+   confirms it bites, not on one session's hunch.
 
 > Sow small rules; the whole raises itself. Pull the weed that won't take root;
-> water the one that does.
+> water the one that does. Then live in the house, and let it tell you what it needs.
