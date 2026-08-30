@@ -1,99 +1,103 @@
 ---
 name: smriti
-description: "Give your AI agent persistent plain-text memory across sessions. Write durable memories (decisions, patterns, facts, preferences), recall by query, prune stale entries — all stored as human-readable markdown files. No database, no embeddings, no dependencies."
+description: "Give your AI agent persistent plain-text memory across sessions. Write durable memories (decisions, patterns, facts, preferences), recall by query, prune stale entries — all stored as human-readable markdown files. No database, no embeddings, no dependencies, no setup."
 ---
 
 # smriti — Plain-Text Memory for AI Agents
 
-You now have persistent memory. Use it to remember things that matter across sessions: decisions made, patterns discovered, facts learned, preferences stated. Everything is stored as markdown files — human-readable, git-versioned, yours.
+You now have persistent memory. Use it to remember things that matter across sessions: decisions made, patterns discovered, facts learned, preferences stated.
+
+Memory is a **directory of markdown files** — you read and write them directly with your file tools. No server, no database, no setup.
+
+## Memory Directory
+
+The memory store lives at `~/.smriti/` (create it if it doesn't exist). Each memory is one `.md` file. The index is `INDEX.md`.
+
+## The Format
+
+Each memory file looks like this:
+
+```markdown
+---
+id: user-prefers-postgres
+hook: User prefers Postgres over Mongo for transactional data
+type: decision
+created: 2026-08-30
+updated: 2026-08-30
+links: [ledger-architecture]
+---
+
+Decided during ledger architecture review. Reason: ACID guarantees matter more than schema flexibility for financial data.
+```
+
+**Frontmatter fields:**
+
+| Field | Required | Rules |
+|---|---|---|
+| `id` | yes | Filename stem. Lowercase slug, hyphens. |
+| `hook` | yes | One line, ≤120 chars — what this memory IS |
+| `type` | yes | One of: `fact`, `preference`, `decision`, `pattern`, `reference` |
+| `created` | yes | ISO date (YYYY-MM-DD) |
+| `updated` | yes | ISO date — update on every touch |
+| `links` | no | IDs of related memories: `[id-a, id-b]` |
+
+**Body:** The seed — compressed, ≤1500 chars. If longer, it's a document; store the seed and link the document.
 
 ## How to Use Memory
 
-### Starting a session
-At the start of every conversation, load context to see what you already know:
+### At session start — load context
 
+Read `~/.smriti/INDEX.md` to see everything you know. If it doesn't exist, the store is empty.
+
+The index looks like:
+```markdown
+# Memory Index
+
+3 memories. One line each — load this into context.
+
+## decision
+- [User prefers Postgres over Mongo](user-prefers-postgres.md) — decision
+
+## pattern
+- [Tests fail on CI but pass locally — timezone issue](tests-fail-ci-timezone.md) — pattern
+
+## fact
+- [Project uses Python 3.11 with FastAPI](project-python-fastapi.md) — fact
 ```
-memory_context
-```
 
-This returns the full index — one line per memory. Scan it. If a hook is relevant to the current task, fetch the full body with `memory_get`.
+### Writing a memory
 
-### Remembering something durable
-When the user states a decision, reveals a preference, or you discover a pattern worth keeping:
+When the user states a decision, reveals a preference, or you discover a pattern:
 
-```
-memory_write(hook="User prefers Postgres over Mongo for transactional data", type="decision", body="Decided during ledger architecture review. Reason: ACID guarantees matter more than schema flexibility for financial data.")
-```
+1. Create a slug from the hook: `"User prefers dark mode"` → `user-prefers-dark-mode`
+2. Write the file at `~/.smriti/<slug>.md` with the frontmatter + body
+3. **Rebuild the index:** Read all `.md` files (except INDEX.md), group by type, write INDEX.md with one `- [hook](filename) — type` line per memory, sorted by updated date (newest first)
 
-**Only store what's durable.** Apply the filter:
+**The write filter — only store what's durable:**
 - Is this a **decision** (something committed to)?
 - Is this a **pattern** (something observed multiple times)?
 - Is this a **fact** (something stable and non-obvious)?
 - Is this a **preference** (a stated choice)?
 - Is this a **reference** (a pointer to external knowledge)?
 
-If it's none of these — if it's transient, derivable, or obvious — let it pass.
+If none of these — if it's transient, derivable, or obvious — let it pass.
 
-**Compress.** The hook must be one line (≤120 chars). The body must be short (≤1500 chars). Store the seed, not the document.
+### Recalling memories
 
-### Recalling relevant memories
-When you need context on a topic:
+To find relevant memories for a topic: read INDEX.md, scan the hooks for relevance, then read the full body of matching files. Follow `links` one hop — a decision brings the pattern it rests on.
 
-```
-memory_recall(query="database choice", k=5)
-```
+### Updating a memory
 
-Returns the most relevant memories, ranked. Follows links one hop — a decision brings the pattern it rests on.
-
-### Reading a specific memory
-When a hook from the index looks relevant and you need the full body:
-
-```
-memory_get(id="user-prefers-postgres-over-mongo-for-transactional-data")
-```
+Read the existing file, update the body and `updated` date, write it back. Rebuild the index.
 
 ### Pruning
-Periodically surface memories that may need attention:
 
-```
-memory_prune
-```
+Periodically scan for:
+- **Stale:** memories with `updated` older than 180 days
+- **Duplicates:** two memories with nearly identical hooks
+- **Broken links:** `links` pointing to IDs that don't exist as files
 
-Reports stale entries (untouched >180 days), near-duplicate hooks, and broken links.
-
-## The Four Rules
-
-1. **Write filter** — store only what's durable and non-obvious
-2. **Compress** — one-line hook + short body. Lead with the spine.
-3. **Recall by hook** — read the index first; descend to a body only on match
-4. **Prune** — surface stale, duplicate, and broken memories
-
-## Memory Types
-
-| Type | When to use | Example |
-|---|---|---|
-| `fact` | Stable, non-obvious information | "Project uses Python 3.11 with FastAPI" |
-| `preference` | A stated user choice | "User prefers dark mode in all UIs" |
-| `decision` | Something committed to | "Use Postgres, not Mongo, for the ledger" |
-| `pattern` | Something observed multiple times | "Tests fail on CI but pass locally — Docker timezone issue" |
-| `reference` | A pointer to external knowledge | "API docs at docs.example.com/v3" |
-
-## Setup
-
-The MCP server must be configured. Add to your MCP config:
-
-```json
-{
-  "mcpServers": {
-    "smriti": {
-      "command": "python3",
-      "args": ["{{SKILL_PATH}}/mcp_server.py", "~/.smriti"]
-    }
-  }
-}
-```
-
-Requires: `pip install mcp` (Python 3.10+). smriti itself has zero dependencies.
+Report these to the user. Never auto-delete — let the user decide.
 
 ## What NOT to Store
 
@@ -102,3 +106,24 @@ Requires: `pip install mcp` (Python 3.10+). smriti itself has zero dependencies.
 - Derivable information (things you can figure out from code)
 - Entire documents (store the seed, link the document)
 - Secrets, API keys, or credentials
+
+## Example Session
+
+**Start:**
+```
+→ Read ~/.smriti/INDEX.md
+  "3 memories. User prefers dark mode. Project uses FastAPI. Tests fail on CI timezone."
+  Hook "FastAPI" is relevant to current task → read ~/.smriti/project-python-fastapi.md
+```
+
+**During work:**
+```
+User says: "Let's use Redis for caching, not Memcached"
+→ Write ~/.smriti/use-redis-for-caching-not-memcached.md
+→ Rebuild INDEX.md
+```
+
+**End:**
+```
+→ Check: did we learn anything durable this session? If yes, write it. If no, done.
+```
