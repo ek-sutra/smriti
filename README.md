@@ -31,4 +31,37 @@ mem.prune()                    # stale / duplicate / broken-link memories
 
 ---
 
+## MCP Server
+
+Use smriti as a tool for Claude Code, Copilot, Cursor, or any MCP client.
+
+```bash
+pip install agent-smriti mcp
+```
+
+Add to your MCP config (e.g. `~/.config/claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "smriti": {
+      "command": "python3",
+      "args": ["/path/to/smriti/mcp_server.py", "~/.smriti"]
+    }
+  }
+}
+```
+
+**Five tools:**
+
+| Tool | What it does |
+|---|---|
+| `memory_context` | Inject the full index — see everything the agent knows |
+| `memory_write` | Store a durable memory (decision, pattern, fact, preference, reference) |
+| `memory_recall` | Search by query — ranked, follows links one hop |
+| `memory_get` | Read the full body of a memory by id |
+| `memory_prune` | Surface stale, duplicate, or broken-link memories |
+
+---
+
 [**The format**](SPEC.md) is the whole spec &nbsp;·&nbsp; [**Benchmarks**](bench/) — local-model A/B: smriti **100%** vs no-memory **25%** at ~⅓ the context &nbsp;·&nbsp; MIT
