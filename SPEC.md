@@ -75,3 +75,13 @@ A conforming implementation MUST:
 
 It MUST NOT require a database, a server, or any non-text storage. The store is
 the markdown; everything else is convenience.
+
+**Hosted implementations.** A networked or hosted implementation MUST keep the
+markdown files the source of truth: every memory exists as a conforming file
+(§1); recall runs over hooks (§3), never SQL or vector search; and a user can
+export the complete store to a directory readable with `cat`, zero services
+running, losing nothing. Such a backend MAY hold identity, a per-memory
+permission ledger, and a synced copy for transport — it MUST NOT be the sole home
+of any memory, MUST NOT be required to read one's own memory, and MUST NOT turn
+recall into a network call. The backend is to the store what GitHub is to git: a
+broker over the files, never their home.

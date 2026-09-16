@@ -55,6 +55,17 @@ Then tune; don't control.
   time-since-last-*used*, not time-since-written — so use keeps a memory alive
   and disuse lets it fade. The spacing effect, in plain text. Rewrites only the
   `updated:` line; stands alone. (`test_temporal.py`.)
+- **`consolidate.py`** — the generative organ. Where the others subtract or
+  maintain, this one raises memory a level: it folds many episodes into one
+  `pattern` (episodic → semantic — the *compress* organ this file long wanted).
+  `plan()` surfaces candidate clusters and gates them on a shared *core*, so a
+  hub-bridged blob (distinct subjects welded by a shared date or name) is flagged,
+  not fused. The curator authors the one hook+seed — *worth is semantic* (the
+  triage lesson), so a machine never writes the gist — and `fuse()` does the
+  mechanical, reversible rest: it writes the sources' vocabulary into the body as
+  a `Cues:` line so lexical recall still finds the pattern (no embeddings),
+  repoints inbound links, and archives the folded sources to `.consolidated/log.md`.
+  Stands alone, stdlib. (`test_consolidate.py`.)
 
 ## A pruned piece — and why that's the loop working
 
@@ -115,6 +126,81 @@ Real use named friction on the first session — which is the point:
    of another's (restatement-with-extra-words), which catches this case without
    the false-merge risk. That's the next piece — to be built when sustained use
    confirms it bites, not on one session's hunch.
+
+## The loop closed — now run it, and sit
+
+With `consolidate`, the five-organ metabolism is whole, and in the Claude Code
+adapter it is self-firing:
+
+    write → recall → reinforce → forget → consolidate (plan → fuse)
+
+`integrations/claude_code.py` fires a `consolidate` beat on SessionStart, so a
+session opens with the clusters ready to fold; the curator folds a clean one in
+the course of real work. Proven on a live store: five OPUS-2.0 facts folded into
+one `pattern`, and the planner then reported *"nothing to fold"* — a living
+system does its work and rests; only a dead one manufactures work to look busy.
+
+Asked how to grow it "more like human memory," the council's disciplined answer
+was **build nothing** — recorded here so it is not relitigated:
+
+- Human memory's famous mechanisms — rewrite-on-recall, similarity-by-vector,
+  meaning-guessed-at-encoding, hidden salience — are its *constraints*, not its
+  virtues. Each makes the store less faithful to what was recorded, and faithful
+  plain text you can `cat` is the whole moat. Adopt the principles that make
+  memory wiser — **fold, fade, associate** — and refuse the mechanisms that make
+  it human. Copying those is cosplay, not growth.
+- The "human" candidates are already present or are traps: associative recall is
+  already `follow_links` + the `Cues:` written into a fold; salience is already
+  type half-life + reinforce; schema-driven encoding and reconsolidation are
+  traps — the first is the triage lesson again, the second a fidelity bug — and
+  the honest slice of each is the curator weaving the existing `links` field, a
+  *habit*, not an organ.
+
+So the state is **leave it running.** Build the next piece only when one of these
+tripwires actually bites in real use — never from the wish to be more human:
+
+1. **containment-aware dedup** — a restated duplicate slips the 0.8 line again
+   (the piece named above).
+2. **`identity` half-life** — a true self-fact (a return date, a long-held aim)
+   *wrongly fades* and must be re-taught; the fix is an effectively-infinite
+   half-life for that memory, not a new subsystem.
+3. **recall's synonym wall** — the standing, deliberately-unpaid lexical limit
+   (`db` ≠ `database`); embeddings stay refused. A fold's `Cues:` line already
+   buys back part of it from the write side.
+
+The wish to be "more human" is not a tripwire. The wisest piece at this sitting
+is the one not built.
+
+## A deferred piece — the shared / hosted backend
+
+A public SDK with a hosted backend (the idea: Supabase — Postgres, auth,
+permissions) was considered, to make one memory that many agents plug into and
+share. It is **deferred**, and writing down why is the turn of the loop.
+
+The format is the source of truth. A server is legitimate only as a *broker over
+the files* — the way GitHub is a broker over git: it holds identity, a permission
+ledger, and a synced copy, and you can still `git clone` and read everything
+offline with nothing running. The moment a memory's truth lives only in a
+database row that `cat` cannot reconstruct, smriti has stopped being smriti — and
+stopped for nothing, because at that point it is one more memory-service with its
+only differentiator (no vendor between you and your memory) traded away.
+
+The honest trigger has not bitten. The shared case has been used zero times; the
+one real application (`examples/brain.py`) is single-user. For *same-org*
+sharing, a git remote is already a working broker today. The one thing files
+genuinely cannot do — and the only thing that would name an external broker — is
+**per-memory, cross-stranger, revocable** sharing (a git clone is forever). Build
+the broker the day that need is exercised, not on the hunch that "public" implies
+"database." (This is the `triage` lesson at product scale — the negative result
+is the artifact.)
+
+The next piece, when shared use bites, stays in the waist: an optional
+`visibility: private | shared` and `shared_with: [id, …]` in the frontmatter — so
+the permission is *also* plain text — plus a shared-subset export (write the
+`visibility: shared` memories to a directory a peer pulls and recalls with the
+existing lexical recall). Revocation-by-omission first; an external ACL broker
+only when cross-stranger revocation is a proven, recurring need. The conformance
+line for any such backend is written into [SPEC §4](SPEC.md).
 
 > Sow small rules; the whole raises itself. Pull the weed that won't take root;
 > water the one that does. Then live in the house, and let it tell you what it needs.
