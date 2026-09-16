@@ -12,6 +12,11 @@ being told to. It runs three ways:
   write     capture a durable memory from the command line (the curator's job —
             the agent calls this when something worth keeping emerges)
 
+  consolidate  surface clusters that have become one subject, ready to fold into
+            one pattern (a periodic nudge — e.g. a SessionStart hook). It only
+            surfaces; the curator folds (authors the gist, calls consolidate.fuse).
+            This is what keeps the store getting wiser, not just bigger.
+
 The store is $SMRITI_STORE (a directory of .md files). This helper never breaks a
 session: any error exits 0 silently.
 
@@ -92,6 +97,17 @@ def main(argv: list[str]) -> int:
         if hook:
             m = mem.write(hook, body=body, type=type_)
             print(f"wrote {m.id} [{m.type}]")
+
+    elif mode == "consolidate":
+        import consolidate
+
+        ready = [c for c in consolidate.plan(mem) if c.fusible]
+        if ready:
+            print("<!-- smriti: clusters ready to consolidate — fold each into one pattern -->")
+            for c in ready:
+                print(f"- {c.reason}")
+                for m in c.members:
+                    print(f"    · [{m.type}] {m.hook}")
 
     return 0
 
